@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Psychological Profiling with Quantitative Measures via Deep Learning-Based Object Detection on House-Tree-Person Sketches</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 선택된 이미지 스타일 */
+        .selected {
+            border: 4px solid #3b82f6;
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        /* 이미지 호버 효과 */
+        .image-container:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        /* 메시지 출력 스타일 */
+        #message-output {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 2rem;
+            background: linear-gradient(to bottom, #ffffff, #f1f5f9);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #message-output p {
+            margin-bottom: 0.75rem;
+        }
+        /* 버튼 호버 효과 */
+        #process-btn {
+            transition: all 0.3s ease;
+        }
+        #process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        /* 입력 폼 스타일 */
+        select, input[type="radio"] {
+            transition: all 0.3s ease;
+        }
+        select:focus, input[type="radio"]:checked {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 min-h-screen">
+    <div class="container mx-auto p-6 max-w-7xl">
+        <h1 class="text-4xl font-extrabold text-center mb-2 text-gray-800 bg-white py-4 rounded-lg shadow-md">
+            Automated Psychological Profiling with Quantitative Measures via Deep Learning-Based Object Detection on House-Tree-Person Sketches
+        </h1>
+        <p class="text-center text-sm text-gray-600 mb-8">By Eden Kang and Joonwoo Park (Canyon Crest Academy)</p>
+
+        <!-- House 갤러리 -->
+        <h2 class="text-2xl font-bold mb-4 text-blue-700">1. House</h2>
+        <div id="gallery-house" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-10">
+            {% for image in images['house'] %}
+                <div class="bg-white p-3 rounded-lg shadow-lg image-container" data-filename="{{ image }}" data-folder="house">
+                    <img src="{{ url_for('static', filename='house/' + image) }}" alt="House Image" class="w-full h-48 object-cover rounded-md" loading="lazy">
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Tree 갤러리 -->
+        <h2 class="text-2xl font-bold mb-4 text-green-700">2. Tree</h2>
+        <div id="gallery-tree" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-10">
+            {% for image in images['tree'] %}
+                <div class="bg-white p-3 rounded-lg shadow-lg image-container" data-filename="{{ image }}" data-folder="tree">
+                    <img src="{{ url_for('static', filename='tree/' + image) }}" alt="Tree Image" class="w-full h-48 object-cover rounded-md" loading="lazy">
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Person 갤러리 -->
+        <h2 class="text-2xl font-bold mb-4 text-red-700">3. Person</h2>
+        <div id="gallery-person" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-10">
+            {% for image in images['person'] %}
+                <div class="bg-white p-3 rounded-lg shadow-lg image-container" data-filename="{{ image }}" data-folder="person">
+                    <img src="{{ url_for('static', filename='person/' + image) }}" alt="Person Image" class="w-full max-w-[320px] h-60 object-cover rounded-md" loading="lazy">
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- 나이 선택 및 성별 선택 -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <label for="age" class="block text-lg font-medium mb-2 text-gray-700">Age</label>
+                <select id="age" name="age" class="border rounded-lg px-4 py-2 w-40 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="" disabled selected>Age</option>
+                    {% for i in range(1, 19) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <div class="mt-4">
+                    <label class="block text-lg font-medium mb-2 text-gray-700">Sex</label>
+                    <div class="flex space-x-6">
+                        <label class="flex items-center"><input type="radio" name="gender" value="female" class="mr-2 h-5 w-5 text-blue-500" required> Female</label>
+                        <label class="flex items-center"><input type="radio" name="gender" value="male" class="mr-2 h-5 w-5 text-blue-500" required> Male</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <form id="process-form" action="/process" method="POST">
+                <input type="hidden" id="house-img" name="house_img">
+                <input type="hidden" id="tree-img" name="tree_img">
+                <input type="hidden" id="person-img" name="person_img">
+                <input type="hidden" id="age-input" name="age">
+                <input type="hidden" id="gender-input" name="gender">
+                <button type="submit" id="process-btn" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gradient-to-r hover:from-blue-600 hover:to-indigo-700">Process</button>
+            </form>
+        </div>
+        <div id="output" class="text-center mt-6 text-lg text-gray-700"></div>
+        <div id="error-output" class="text-center mt-6 text-red-600 font-medium">
+            {% if error %}
+                <p>{{ error }}</p>
+            {% endif %}
+        </div>
+        <div id="message-output" class="prose">
+            {% if message %}
+                {% for msg in message %}
+                    <p class="{% if loop.index0 == 0 %}text-purple-600{% elif loop.index0 == 1 %}text-blue-600{% elif loop.index0 == 3 %}text-green-600{% elif loop.index0 == 5 %}text-red-600{% else %}text-gray-800{% endif %} font-medium">{{ msg | safe }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div id="selected-images" class="flex flex-wrap justify-center mt-8 gap-6">
+            {% if processed_images %}
+                {% for img in processed_images %}
+                    <div class="bg-white p-3 rounded-lg_shadow-lg">
+                        <img src="{{ url_for('static', filename='processed/' + img) }}" alt="Processed {{ img.split('_')[0] | capitalize }} Image" class="w-full max-w-[320px] h-60 object-cover rounded-md">
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 사진 선택 기능
+        const selectedImages = {
+            house: null,
+            tree: null,
+            person: null
+        };
+
+        const imageContainers = document.querySelectorAll('.image-container');
+
+        imageContainers.forEach(container => {
+            container.addEventListener('click', () => {
+                const folder = container.getAttribute('data-folder');
+                const filename = container.getAttribute('data-filename');
+
+                // 기존 선택 해제 (같은 갤러리 내)
+                if (selectedImages[folder]) {
+                    selectedImages[folder].classList.remove('selected');
+                }
+
+                // 새 이미지 선택
+                container.classList.add('selected');
+                selectedImages[folder] = container;
+
+                // 선택된 파일명을 숨은 입력 필드에 저장
+                document.getElementById(`${folder}-img`).value = filename;
+            });
+
+            // 키보드 접근성 지원
+            container.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    container.click();
+                }
+            });
+        });
+
+        // Process 버튼 기능
+        const processForm = document.getElementById('process-form');
+        const outputDiv = document.getElementById('output');
+        const ageInput = document.getElementById('age');
+        const genderInputs = document.querySelectorAll('input[name="gender"]');
+        const ageHidden = document.getElementById('age-input');
+        const genderHidden = document.getElementById('gender-input');
+
+        processForm.addEventListener('submit', (e) => {
+            // 나이와 성별을 숨은 입력 필드에 저장
+            ageHidden.value = ageInput.value;
+            const selectedGender = Array.from(genderInputs).find(input => input.checked);
+            genderHidden.value = selectedGender ? selectedGender.value : '';
+
+            // 모든 필드가 입력되었는지 확인
+            if (!ageHidden.value || !genderHidden.value || !selectedImages.house || !selectedImages.tree || !selectedImages.person) {
+                e.preventDefault();
+                outputDiv.textContent = 'error!';
+            } else {
+                outputDiv.textContent = 'processing...';
+            }
+        });
+    </script>
+</body>
+</html>

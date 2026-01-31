@@ -1,0 +1,25 @@
+# config.yaml
+
+house:
+  - chimney_smoke
+  - house_prop
+  - roof_prop
+  - door
+  - door_prop
+  - window
+  - window_prop
+    
+tree:
+  - pole_prop
+  - root_prop
+  - crown_prop
+  - flower
+  - fruit
+  - leaf
+
+person:
+  - head_prop
+  - face_prop
+  - body_prop
+  - leg_height_prop
+  - arm_width_prop 
